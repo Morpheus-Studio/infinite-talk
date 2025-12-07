@@ -23,6 +23,11 @@
 - CUDA Toolkit 12.1
 - cuDNN compatible with CUDA 12.1
 
+### Important Version Notes
+- **PyTorch**: 2.4.1 (pinned for stability)
+- **xfuser**: 0.4.1 (pinned - newer versions require PyTorch 2.5+)
+- **Flash Attention**: 2.7.4.post1 (requires compilation)
+
 ## Installation Steps
 
 ### Step 1: Install Dependencies

@@ -53,7 +53,7 @@ def main():
         "--sample_steps", "8",
         "--mode", "streaming",
         "--quant", "fp8",
-        "--quant_dir", "weights/InfiniteTalk/quant_models/t5_fp8.safetensors",
+        "--quant_dir", "weights/InfiniteTalk/quant_models/infinitetalk_single_fp8.safetensors",
         "--motion_frame", "9",
         "--sample_shift", "2",
         "--num_persistent_param_in_dit", "0",

@@ -274,8 +274,10 @@ def _parse_args():
 
     return args
 
-def custom_init(device, wav2vec):    
-    audio_encoder = Wav2Vec2Model.from_pretrained(wav2vec, local_files_only=True).to(device)
+def custom_init(device, wav2vec):
+    # Use eager attention implementation to support output_attentions=True
+    # SDPA (default in transformers>=4.50) does not support this feature
+    audio_encoder = Wav2Vec2Model.from_pretrained(wav2vec, local_files_only=True, attn_implementation='eager').to(device)
     audio_encoder.feature_extractor._freeze_parameters()
     wav2vec_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(wav2vec, local_files_only=True)
     return wav2vec_feature_extractor, audio_encoder

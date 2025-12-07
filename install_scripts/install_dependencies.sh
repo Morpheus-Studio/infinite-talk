@@ -36,6 +36,14 @@ pip install flash_attn==2.7.4.post1
 echo "Installing project requirements..."
 pip install -r "$PROJECT_DIR/requirements.txt"
 
+# Step 6.5: Pin xfuser to 0.4.1 for PyTorch 2.4.1 compatibility
+echo "Pinning xfuser to 0.4.1..."
+pip install xfuser==0.4.1
+
+# Step 6.6: Reinstall xformers after xfuser pinning (in case it was removed)
+echo "Ensuring xformers is installed..."
+pip install xformers==0.0.28 --index-url https://download.pytorch.org/whl/cu121
+
 # Step 7: Install librosa
 echo "Installing librosa..."
 pip install librosa

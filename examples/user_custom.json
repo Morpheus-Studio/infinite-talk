@@ -1,0 +1,7 @@
+{
+    "prompt": "A person speaks naturally to the camera with clear lip sync.",
+    "cond_video": "assets/face.jpeg",
+    "cond_audio": {
+        "person1": "assets/audio.m4a"
+    }
+}

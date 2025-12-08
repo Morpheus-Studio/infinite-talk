@@ -14,6 +14,9 @@ results/
 *.avi
 *.mov
 
+# Cached Audio Embeddings
+save_audio/
+
 # Python Cache
 __pycache__/
 *.pyc

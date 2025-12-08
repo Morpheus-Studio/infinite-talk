@@ -45,7 +45,7 @@ def main():
         "--wav2vec_dir", "weights/chinese-wav2vec2-base",
         "--infinitetalk_dir", "weights/InfiniteTalk/single/infinitetalk.safetensors",
         "--lora_dir", "weights/FusionX/FusionX_LoRa/Wan2.1_I2V_14B_FusionX_LoRA.safetensors",
-        "--input_json", "examples/single_example_image.json",
+        "--input_json", "examples/user_custom.json",
         "--lora_scale", "1.0",
         "--size", "infinitetalk-480",
         "--sample_text_guide_scale", "1.0",
@@ -57,7 +57,7 @@ def main():
         "--motion_frame", "9",
         "--sample_shift", "2",
         "--num_persistent_param_in_dit", "0",
-        "--save_file", "test_output"
+        "--save_file", "test_output_custom"
     ]
     
     print(f"Running command: {' '.join(cmd)}")

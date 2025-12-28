@@ -1,75 +1,134 @@
 # Video Generation Jobs
 
-Modular job system for InfiniteTalk video generation. All jobs use simple functions with hardcoded optimized defaults and dynamic parameters.
+This directory contains a modular framework for running InfiniteTalk video generation jobs. Each job is organized in its own folder with dedicated argument classes, making the codebase clean and scalable.
 
-## Quick Start
+## Project Structure
 
-### Image to Video
+```
+video-generation-jobs/
+├── base_job_runner/           # Shared runner framework
+│   ├── __init__.py
+│   ├── base_job_runner.py     # BaseJobRunner class (handles subprocess execution)
+│   ├── base_args.py           # BaseJobArgs dataclass (common arguments)
+│   └── job_config.py          # JobConfig dataclass (video generation config)
+│
+├── from_picture_job/          # Image-to-video generation job
+│   ├── __init__.py
+│   ├── job_args.py            # PictureJobArgs dataclass (image-specific args)
+│   └── run.py                 # Entry point for image-to-video
+│
+├── from_video_job/            # Video-to-video generation job
+│   ├── __init__.py
+│   ├── job_args.py            # VideoJobArgs dataclass (video-specific args)
+│   └── run.py                 # Entry point for video-to-video
+│
+└── README.md                  # This file
+```
+
+## Core Components
+
+### BaseJobRunner
+The `BaseJobRunner` class in `base_job_runner/base_job_runner.py` handles:
+- Argument parsing via argparse
+- Temporary JSON config file creation
+- Subprocess execution of `generate_infinitetalk.py`
+- Automatic cleanup of temporary files
+
+### Dataclasses
+
+#### JobConfig
+Represents the video generation configuration that gets serialized to JSON:
+- `prompt`: Text description of the video
+- `cond_video`: Path to input image or video
+- `cond_audio`: Dictionary mapping person names to audio file paths
+
+#### BaseJobArgs
+Common arguments shared across all jobs:
+- `resolution`: Video resolution (480 or 720)
+- `output`: Output filename prefix
+- `steps`: Sampling steps (default: 40)
+- `low_vram`: Enable low VRAM mode (default: False)
+
+#### Job-Specific Args
+
+**PictureJobArgs** (from_picture_job/job_args.py)
+- Extends `BaseJobArgs`
+- Adds: `image`, `audio`, `prompt`
+
+**VideoJobArgs** (from_video_job/job_args.py)
+- Extends `BaseJobArgs`
+- Adds: `video`, `audio`, `prompt`
+
+## Usage
+
+### Create Video from Picture
+
 ```bash
-python image_to_video.py face.jpg audio.m4a output.mp4
+python video-generation-jobs/from_picture_job/run.py \
+  --image path/to/image.png \
+  --audio path/to/audio.wav \
+  --output my_video_result \
+  --prompt "A person singing" \
+  --resolution 480
 ```
 
-### Video to Video (Dubbing)
+### Create Video from Video
+
 ```bash
-python video_to_video.py input.mp4 new_audio.m4a dubbed.mp4
+python video-generation-jobs/from_video_job/run.py \
+  --video path/to/video.mp4 \
+  --audio path/to/audio.wav \
+  --output my_video_result \
+  --prompt "A person dancing" \
+  --resolution 720
 ```
 
-### Avatar Video
-```bash
-python avatar_video.py my_avatar.safetensors audio.m4a avatar.mp4
-```
+### Optional Arguments
 
-## Architecture
+Both scripts support:
+- `--resolution`: 480 or 720 (default: 480)
+- `--prompt`: Text description (default: "A person talking")
+- `--output`: Output filename (required)
+- `--low-vram`: Enable low VRAM mode (only add flag if needed)
 
-All jobs use `base_video_runner.py` with simple functions:
+## How It Works
 
-- `run_video_generation()` - Inference with hardcoded optimized defaults
-- `create_input_json()` - Helper to create input configuration
+1. Each job script (`run.py`) parses command-line arguments
+2. Arguments are packaged into job-specific dataclass instances
+3. A `JobConfig` object is created from the arguments
+4. `BaseJobRunner.run()` is called with both objects
+5. A temporary JSON config file is created
+6. `generate_infinitetalk.py` is executed as a subprocess with the config
+7. The temporary config file is automatically cleaned up
 
-### Fixed Arguments (Hardcoded Defaults)
-- Model paths, quantization (FP8), VRAM optimization
-- Size: 480P, Mode: streaming
-- Default LoRA: FusionX (5x speed acceleration)
+## Adding a New Job
 
-### Dynamic Parameters (Per-Job Tuning)
-- `sample_steps` - Diffusion steps (default: 8)
-- `sample_text_guide_scale` - Text guidance (default: 1.0)
-- `sample_audio_guide_scale` - Audio guidance (default: 2.0)
-- `lora_scale` - LoRA strength (default: 1.0)
-- `lora_dir` - Custom LoRA path (override for avatars)
+To add a new video generation job:
 
-## Jobs
+1. Create a new folder: `video-generation-jobs/new_job/`
+2. Create `__init__.py` (empty file)
+3. Create `job_args.py` with your specific args dataclass:
+   ```python
+   from dataclasses import dataclass
+   from base_job_runner.base_args import BaseJobArgs
+   
+   @dataclass
+   class NewJobArgs(BaseJobArgs):
+       your_param1: str
+       your_param2: str
+   ```
+4. Create `run.py` following the pattern from `from_picture_job/run.py` or `from_video_job/run.py`
+5. Import and use the new args class in your `run.py`
 
-### 1. Image to Video
-Generate talking head video from image + audio.
+## Requirements
 
-```python
-from image_to_video import main
-success = main('face.jpg', 'audio.m4a', 'output.mp4')
-```
+- InfiniteTalk repository (parent directory)
+- Model weights downloaded (see main README)
+- Python packages from requirements.txt
 
-### 2. Video to Video
-Dub existing video with new audio using first frame as reference.
+## Notes
 
-```python
-from video_to_video import main
-success = main('input.mp4', 'new_audio.m4a', 'dubbed.mp4')
-```
-
-### 3. Avatar Video
-Generate video using custom trained avatar LoRA.
-
-```python
-from avatar_video import main
-success = main('avatar.safetensors', 'audio.m4a', 'output.mp4')
-```
-
-### 4. Train Avatar
-Placeholder for LoRA training. Implement as needed.
-
-## Performance
-
-- FusionX LoRA: 40 → 8 steps (5x speedup)
-- FP8 quantization: Reduces VRAM without quality loss
-- Audio caching: Faster re-runs via `save_audio/`
-- Typical inference: 30-60 seconds on A100
+- Temporary config JSON files are created in the same directory as the job script
+- The runner automatically changes to the repository root before executing `generate_infinitetalk.py`
+- Model paths are hardcoded relative to the repository root
+- Low VRAM mode requires `--num_persistent_param_in_dit` to be set to 0

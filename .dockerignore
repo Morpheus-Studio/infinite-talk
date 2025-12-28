@@ -1,0 +1,36 @@
+# Don't include weights directory in Docker image
+weights/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+temp_config*.json
+
+# Model checkpoints (if any are saved locally during training)
+*.pt
+*.pth
+*.safetensors
+!requirements.txt

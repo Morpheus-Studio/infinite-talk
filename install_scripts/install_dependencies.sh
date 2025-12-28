@@ -16,13 +16,12 @@ fi
 # Activate venv
 source "$VENV_PATH/bin/activate"
 
-# Step 2: Install PyTorch with CUDA 12.1
-echo "Installing PyTorch with CUDA 12.1..."
-pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
+# Step 2: Install PyTorch with CUDA 12.4 (updated: cu121 does not host torch 2.4.1)
+echo "Installing PyTorch with CUDA 12.4..."
+pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
 
 # Step 3: Install xformers
-echo "Installing xformers..."
-pip install -U xformers==0.0.28 --index-url https://download.pytorch.org/whl/cu121
+echo "Note: xformers is optional (optimization). Install at runtime if needed: pip install xformers"
 
 # Step 4: Install Flash Attention dependencies
 echo "Installing Flash Attention dependencies..."
@@ -30,7 +29,9 @@ pip install misaki[en] ninja psutil packaging wheel
 
 # Step 5: Install Flash Attention (this compiles and takes time)
 echo "Installing Flash Attention (may take 5-10 minutes)..."
-pip install flash_attn==2.7.4.post1
+export CUDA_HOME=/usr/local/cuda
+export FORCE_CUDA=1
+pip install flash_attn==2.7.4.post1 --no-build-isolation -vvv
 
 # Step 6: Install requirements.txt
 echo "Installing project requirements..."
@@ -40,9 +41,8 @@ pip install -r "$PROJECT_DIR/requirements.txt"
 echo "Pinning xfuser to 0.4.1..."
 pip install xfuser==0.4.1
 
-# Step 6.6: Reinstall xformers after xfuser pinning (in case it was removed)
-echo "Ensuring xformers is installed..."
-pip install xformers==0.0.28 --index-url https://download.pytorch.org/whl/cu121
+# Step 6.6: Note about xformers
+echo "xformers is optional (optimization). Install at runtime if needed: pip install xformers"
 
 # Step 7: Install librosa
 echo "Installing librosa..."

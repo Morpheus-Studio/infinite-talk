@@ -20,7 +20,8 @@ class BaseJobRunner:
     def run(self, args: BaseJobArgs, config: JobConfig, temp_config_name: str = "temp_config.json"):
         # Setup paths
         current_dir = Path(__file__).parent.absolute()
-        repo_root = current_dir.parent
+        # Project root is one level above video-generation-jobs
+        repo_root = current_dir.parent.parent
         
         # Default weight paths (relative to repo root)
         ckpt_dir = repo_root / "weights" / "Wan2.1-I2V-14B-480P"
@@ -48,7 +49,12 @@ class BaseJobRunner:
         ]
 
         if args.low_vram:
-            cmd.extend(["--num_persistent_param_in_dit", "0"])
+            # Reduce GPU memory: disable persistent params and use fp8 quant weights
+            cmd.extend([
+                "--num_persistent_param_in_dit", "0",
+                "--quant", "fp8",
+                "--quant_dir", str(repo_root / "weights" / "InfiniteTalk" / "quant_models" / "infinitetalk_single_fp8.safetensors"),
+            ])
 
         print(f"Running command: {' '.join(cmd)}")
         

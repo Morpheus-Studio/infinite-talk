@@ -1,5 +1,37 @@
 # InfiniteTalk Installation Guide
 
+## Docker Installation (Recommended for RunPod/Cloud)
+
+The project includes a Dockerfile with all dependencies pre-installed. This is the recommended method for RunPod or any cloud GPU provider.
+
+### Quick Start with Docker
+
+1. **Build the image** (from project root):
+   ```bash
+   ./build.sh
+   ```
+   This builds and pushes `jonathan28alkalay/infinite-talk:0.01` to Docker Hub.
+
+2. **Use on RunPod**:
+   - Create a template with `jonathan28alkalay/infinite-talk:0.01`
+   - Expose port 22 for SSH (optional)
+   - Mount persistent storage to `/workspace` (not `/app` - see note below)
+   - Set environment variable: `PUBLIC_KEY=<your-ssh-public-key>`
+
+3. **Download model weights** (in RunPod pod terminal):
+   ```bash
+   cd /app
+   ./install_scripts/download_weights.sh
+   ```
+
+### Important Docker Notes
+- Project code is baked into `/app` inside the container
+- If you mount a volume to `/app`, it will overlay the built-in code (mount to `/workspace` instead)
+- The conda environment `multitalk` is pre-activated
+- All dependencies (PyTorch, xformers, flash-attn) are pre-installed
+
+---
+
 ## System Requirements
 
 ### Storage Space
@@ -24,51 +56,28 @@
 - cuDNN compatible with CUDA 12.1
 
 ### Important Version Notes
-- **PyTorch**: 2.4.1 (pinned for stability)
-- **xfuser**: 0.4.1 (pinned - newer versions require PyTorch 2.5+)
-- **Flash Attention**: 2.7.4.post1 (requires compilation)
+- **PyTorch**: 2.2.2+cu121 (pinned for CUDA 12.1)
+- **xformers**: 0.0.25.post1 (pinned)
+- **Flash Attention**: 2.7.4.post1 (compiled for SM90/Hopper)
+- **xfuser**: 0.4.1 (pinned)
 
-## Installation Steps
+---
 
-### Step 1: Install Dependencies
+## Using the Docker Container
+
+After the pod starts and weights are downloaded:
+
 ```bash
-bash install_scripts/install_dependencies.sh
+# Activate conda environment (if not already active)
+source /opt/conda/etc/profile.d/conda.sh
+conda activate multitalk
+
+# Run inference
+cd /app
+python generate_infinitetalk.py --help
 ```
 
-This script:
-- Creates a Python 3.10 virtual environment at `.venv`
-- Installs PyTorch 2.4.1 with CUDA 12.1 support
-- Installs xformers and Flash Attention (requires compilation, takes 5-10 min)
-- Installs all project requirements from `requirements.txt`
-- Installs FFmpeg for video processing
-- Sets up HuggingFace CLI tools for model downloads
-
-### Step 2: Download Model Weights
-```bash
-bash install_scripts/download_weights.sh
-```
-
-⚠️ **This will download ~100GB+ of model files. Make sure you have:**
-- Stable internet connection (high bandwidth recommended)
-- 270GB+ free disk space
-- Time for download to complete (can take a while)
-
-Downloaded models will be stored in `./weights/` directory:
-```
-weights/
-├── Wan2.1-I2V-14B-480P/          (image-to-video model)
-├── chinese-wav2vec2-base/         (audio encoder)
-└── InfiniteTalk/                  (video generation models)
-    ├── quant_models/              (quantized versions for lower VRAM)
-    └── single/                    (main single-person model)
-```
-
-### One-Command Complete Installation
-```bash
-bash install_scripts/setup_env.sh
-```
-
-This runs both scripts sequentially: dependencies → model downloads
+---
 
 ## Disk Space Optimization Tips
 
@@ -79,61 +88,60 @@ If you're running low on disk space:
    ```bash
    rm -rf ~/.cache/huggingface/hub
    ```
-3. **Use external storage** - Download to an external SSD/HDD and mount it to your project directory
+3. **Use persistent volumes** - On RunPod, mount a large persistent volume to `/workspace` for weights
+
+---
 
 ## Using the Installation
 
-After installation completes, activate the environment:
+The conda environment is pre-activated in the Docker container. Just run:
 ```bash
-source .venv/bin/activate
-```
-
-Then run the inference script:
-```bash
+cd /app
 python generate_infinitetalk.py --help
 ```
 
+---
+
 ## Troubleshooting
+
+### Docker: `/app` directory is empty
+This happens if you mount a volume to `/app`. Solution:
+- Mount persistent storage to `/workspace` instead of `/app`
+- The project code is baked into `/app` in the Docker image
 
 ### "Not enough disk space" error
 - Free up at least 270GB
 - Check with: `df -h`
+- On RunPod, use a larger persistent volume
 - Use quantized models instead (in `weights/InfiniteTalk/quant_models/`)
 
-### FFmpeg not found
-The script will attempt to install FFmpeg automatically. If it fails:
-- **Ubuntu/Debian**: `sudo apt-get install ffmpeg`
-- **CentOS/RHEL**: `sudo yum install ffmpeg ffmpeg-devel`
-- **macOS**: `brew install ffmpeg`
+### `huggingface-cli` not found
+The download script will auto-install it. If that fails:
+```bash
+pip install "huggingface_hub[cli,hf_transfer]"
+```
 
 ### CUDA-related errors
-Ensure CUDA 12.1 is installed and set in PATH:
+Ensure CUDA 12.1 is available (should be in Docker image):
 ```bash
 nvcc --version
+nvidia-smi
 ```
 
-### Flash Attention compilation fails
-This can happen on some systems. Try:
+### Flash Attention issues
+Flash Attention is pre-compiled in the Docker image for Hopper (SM90). If you need to rebuild:
 ```bash
-pip install flash-attn --no-build-isolation
+TORCH_CUDA_ARCH_LIST="9.0" pip install flash-attn --no-build-isolation --force-reinstall
 ```
 
-## Internet Speed Considerations
-
-Model download speeds:
-- **1 Mbps**: ~24 hours for 270GB
-- **10 Mbps**: ~6 hours
-- **100 Mbps**: ~36 minutes
-- **1 Gbps**: ~3-4 minutes
-
-The script uses `hf_transfer` to maximize download speeds with HuggingFace Hub.
+---
 
 ## Post-Installation
 
 Once setup is complete:
-1. ✅ Virtual environment ready at `.venv/`
-2. ✅ All dependencies installed
-3. ✅ All model weights downloaded to `./weights/`
+1. ✅ Docker container running with all dependencies
+2. ✅ Conda environment `multitalk` activated
+3. ✅ Model weights downloaded to `/app/weights/`
 4. ✅ Ready to run inference
 
 Next step: `python generate_infinitetalk.py --help` to see available options.

@@ -54,6 +54,8 @@ RUN source /opt/conda/etc/profile.d/conda.sh && conda activate multitalk \
   && pip install --no-cache-dir "misaki[en]" ninja psutil packaging wheel \
   # Flash Attention (disable build isolation to see installed torch)
   && TORCH_CUDA_ARCH_LIST="9.0" pip install --no-cache-dir --no-build-isolation flash-attn==2.7.4.post1 \
+    # HuggingFace CLI and fast transfer support baked into image
+    && pip install --no-cache-dir "huggingface_hub[cli]" hf_transfer \
   # Project requirements
   && pip install --no-cache-dir -r requirements.txt \
   # xfuser pin

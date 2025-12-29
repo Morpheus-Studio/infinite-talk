@@ -47,9 +47,9 @@ RUN source /opt/conda/etc/profile.d/conda.sh && conda activate multitalk \
   && pip install --upgrade pip \
   # PyTorch stack pinned for reproducibility (CUDA 12.1 wheels)
   && pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu121 \
-       torch==2.2.2+cu121 torchvision==0.17.2+cu121 torchaudio==2.2.2+cu121 \
+       torch==2.4.1+cu121 torchvision==0.19.1+cu121 torchaudio==2.4.1+cu121 \
   # xformers pinned to matching CUDA
-  && pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu121 xformers==0.0.25.post1 \
+  && pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu121 xformers==0.0.28 \
   # Flash Attention dependencies
   && pip install --no-cache-dir "misaki[en]" ninja psutil packaging wheel \
   # Flash Attention (disable build isolation to see installed torch)

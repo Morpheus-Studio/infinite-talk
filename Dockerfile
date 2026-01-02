@@ -64,6 +64,9 @@ RUN source /opt/conda/etc/profile.d/conda.sh && conda activate multitalk \
 # Copy the rest of the project
 COPY . .
 
+# Create temp directory for temporary files (weights directory created by download_weights.sh)
+RUN mkdir -p /app/temp
+
 # Default to using the conda env executables
 ENV CONDA_DEFAULT_ENV=multitalk
 ENV PATH=/opt/conda/envs/multitalk/bin:/opt/conda/bin:${PATH}
@@ -71,5 +74,5 @@ ENV PYTHONUNBUFFERED=1
 
 # No weights are downloaded at build time; user will handle inside container
 
-# Default to an interactive shell; override with docker run args as needed
+# Default to running as interactive shell, but can be overridden for RunPod
 CMD ["/bin/bash"]

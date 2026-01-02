@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 class S3Handler:
     """Handle S3 operations for video generation jobs"""
     # Initialize the S3 client once for the instance
-    s3_client = field(default_factory=lambda: boto3.client('s3'))
+    s3_client: any = field(default_factory=lambda: boto3.client('s3'))
         
     def _parse_s3_path(self, s3_path: str):
         """Helper to extract bucket and key from an s3:// URL"""

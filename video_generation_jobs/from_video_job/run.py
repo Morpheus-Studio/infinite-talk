@@ -1,6 +1,5 @@
-import os
-from base_job_runner import BaseJobRunner
-from from_video_job.job_args import VideoJobArgs
+from video_generation_jobs.base_job_runner import BaseJobRunner
+from video_generation_jobs.from_video_job.job_args import VideoJobArgs
 
 def run(video_path: str, audio_path: str, s3_output_path: str, prompt: str, resolution: str, steps: int):
     """

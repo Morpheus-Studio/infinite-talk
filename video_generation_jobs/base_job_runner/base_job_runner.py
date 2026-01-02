@@ -3,8 +3,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from base_job_runner.base_args import BaseJobArgs
-from utils.s3_handler import S3Handler
+from video_generation_jobs.base_job_runner.base_args import BaseJobArgs
+from video_generation_jobs.utils.s3_handler import S3Handler
 
 @dataclass
 class BaseJobRunner:
@@ -21,14 +21,22 @@ class BaseJobRunner:
         temp_config_name = "temp_config.json"
         temp_output_path = "/tmp/infinitetalk_output"
 
-        # read audio and image/video from s3
+        # Download video and audio files from S3
+        local_video_path = self.s3_handler.read_from_s3(args.video_path, "/tmp/infinitetalk_video")
+        if not local_video_path:
+            raise RuntimeError(f"Failed to download video from {args.video_path}")
+        
+        # Download audio from S3
+        local_audio_path = self.s3_handler.read_from_s3(args.audio_path["person1"], "/tmp/infinitetalk_audio")
+        if not local_audio_path:
+            raise RuntimeError(f"Failed to download audio from {args.audio_path['person1']}")
         
         # Create temporary config json
         config_data = {
             "prompt": args.prompt,
-            "cond_video": args.video_path,
+            "cond_video": local_video_path,
             "cond_audio": {
-                "person1": args.audio_path
+                "person1": local_audio_path
             }
         }
         

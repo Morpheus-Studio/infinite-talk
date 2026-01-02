@@ -1,6 +1,5 @@
-import os
-from base_job_runner import BaseJobRunner
-from from_picture_job.job_args import PictureJobArgs
+from video_generation_jobs.base_job_runner import BaseJobRunner
+from video_generation_jobs.from_picture_job.job_args import PictureJobArgs
 
 
 

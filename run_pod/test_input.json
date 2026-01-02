@@ -1,0 +1,12 @@
+{
+    "input": {
+        "job_type": "from_video",
+        "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
+        "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
+        "prompt": "A person talking",
+        "resolution": "480",
+        "steps": 40,
+        "low_vram": false,
+        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output.mp4"
+    }
+}

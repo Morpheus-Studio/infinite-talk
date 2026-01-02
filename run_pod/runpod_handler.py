@@ -4,11 +4,12 @@ RunPod Serverless Handler for InfiniteTalk Video Generation
 import runpod
 import sys
 from pathlib import Path
+# Add project root to path (parent of run_pod folder)
+PROJECT_ROOT = Path(__file__).parent.parent.absolute()
+sys.path.insert(0, str(PROJECT_ROOT))
+
 from video_generation_jobs.from_picture_job.run import run as run_picture_job
 from video_generation_jobs.from_video_job.run import run as run_video_job
-# Add project root to path
-PROJECT_ROOT = Path(__file__).parent.absolute()
-sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def handler(job):
@@ -23,7 +24,8 @@ def handler(job):
             "audio": "/path/to/audio.wav",
             "prompt": "A person talking",
             "resolution": "480" or "720",
-            "steps": 40
+            "steps": 40,
+            "s3_output_path": "s3://bucket/path/to/output.mp4"
         }
     }
     """

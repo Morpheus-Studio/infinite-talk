@@ -27,9 +27,9 @@ class BaseJobRunner:
             raise RuntimeError(f"Failed to download video from {args.video_path}")
         
         # Download audio from S3
-        local_audio_path = self.s3_handler.read_from_s3(args.audio_path["person1"], "/tmp/infinitetalk_audio")
+        local_audio_path = self.s3_handler.read_from_s3(args.audio_path, "/tmp/infinitetalk_audio")
         if not local_audio_path:
-            raise RuntimeError(f"Failed to download audio from {args.audio_path['person1']}")
+            raise RuntimeError(f"Failed to download audio from {args.audio_path}")
         
         # Create temporary config json
         config_data = {
@@ -55,7 +55,20 @@ class BaseJobRunner:
             "--size", f"infinitetalk-{args.resolution}",
             "--sample_steps", str(args.steps),
             "--mode", "streaming",
-            "--motion_frame", "9",
+            
+            # "--motion_frame", "20",   # Increase overlap for smoother motion (default is 9)
+            # "--frame_num", "121",                  # Larger per-chunk processing (must be 4n+1)
+            # "--use_teacache",                      # Enable inference acceleration
+            # "--teacache_thresh", "0.1",            # Set TeaCache efficiency
+            # "--num_persistent_param_in_dit", "10"  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
+            # "--offload_model", "False"
+            # "--use_apg",                # Enable higher quality sampling
+            # "--apg_momentum", "-0.75",   # Standard stable setting
+            # "--apg_norm_threshold", "55",# Standard stable setting
+            # "--color_correction_strength", "1.0", # Keep identity colors accurate
+            # "--sample_shift", "7.0",          # Standard stable setting
+
+
             "--save_file", temp_output_path
         ]
 

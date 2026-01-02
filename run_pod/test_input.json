@@ -3,7 +3,7 @@
         "job_type": "from_video",
         "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
         "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
-        "prompt": "A person talking",
+        "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
         "resolution": "480",
         "steps": 40,
         "low_vram": false,

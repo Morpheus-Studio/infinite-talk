@@ -57,7 +57,7 @@ class BaseJobRunner:
             
             "--use_teacache",                      # Enable inference acceleration
             "--teacache_thresh", "0.2",            # Set TeaCache efficiency
-            "--num_persistent_param_in_dit", "30"  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
+            "--num_persistent_param_in_dit", "20"  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
             "--offload_model", "False"
             
             # "--motion_frame", "20",   # Increase overlap for smoother motion (default is 9)
@@ -71,6 +71,20 @@ class BaseJobRunner:
 
             "--save_file", temp_output_path
         ]
+
+        # Check if this is a LoRA job
+        if hasattr(args, 'lora_dir') and args.lora_dir:
+            # LoRA-specific configuration
+            local_lora_path = args.lora_dir
+            if args.lora_dir.startswith("s3://"):
+                local_lora_path = self.s3_handler.read_from_s3(args.lora_dir, f"/tmp/infinitetalk_lora.safetensors")
+            
+            cmd.extend([
+                "--lora_dir", local_lora_path,
+                "--lora_scale", "1.0",  # Optimal for LoRA
+                "--sample_text_guide_scale", "1.0",  # Optimal for LoRA
+                "--sample_audio_guide_scale", "2.0",  # Optimal for LoRA
+            ])
 
         if args.low_vram:
             # Reduce GPU memory: disable persistent params and use fp8 quant weights

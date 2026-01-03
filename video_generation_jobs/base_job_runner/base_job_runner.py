@@ -57,10 +57,10 @@ class BaseJobRunner:
             
             "--use_teacache",                      # Enable inference acceleration
             "--teacache_thresh", "0.2",            # Set TeaCache efficiency
-            "--num_persistent_param_in_dit", "20"  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
-            "--offload_model", "False"
+            "--num_persistent_param_in_dit", "80",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
+            "--offload_model", "False",
+            "--motion_frame", "5",   # Increase overlap for smoother motion (default is 9)
             
-            # "--motion_frame", "20",   # Increase overlap for smoother motion (default is 9)
             # "--frame_num", "121",                  # Larger per-chunk processing (must be 4n+1)
             # "--use_apg",                # Enable higher quality sampling
             # "--apg_momentum", "-0.75",   # Standard stable setting
@@ -88,6 +88,7 @@ class BaseJobRunner:
 
         if args.low_vram:
             # Reduce GPU memory: disable persistent params and use fp8 quant weights
+            # must be on single GPU for for quantization to work
             cmd.extend([
                 "--num_persistent_param_in_dit", "0",
                 "--quant", "fp8",
@@ -98,11 +99,13 @@ class BaseJobRunner:
         
         try:
             subprocess.run(cmd, check=True, cwd=repo_root)
-            # Upload output to S3
-            self.s3_handler.write_to_s3(temp_output_path, args.s3_output_path)
+            # Upload output to S3 (the script adds .mp4 extension)
+            actual_output_path = f"{temp_output_path}.mp4"
+            self.s3_handler.write_to_s3(actual_output_path, args.s3_output_path)
         finally:
             # Cleanup
             if config_path.exists():
                 config_path.unlink()
-            if Path(temp_output_path).exists():
-                Path(temp_output_path).unlink()
+            actual_output_path = f"{temp_output_path}.mp4"
+            if Path(actual_output_path).exists():
+                Path(actual_output_path).unlink()

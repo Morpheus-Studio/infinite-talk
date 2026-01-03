@@ -26,13 +26,9 @@ class BaseJobRunner:
         audio_suffix = Path(args.audio_path).suffix or ".wav"
 
         local_video_path = self.s3_handler.read_from_s3(args.video_path, f"/tmp/infinitetalk_video{video_suffix}")
-        if not local_video_path:
-            raise RuntimeError(f"Failed to download video from {args.video_path}")
         
         # Download audio from S3
         local_audio_path = self.s3_handler.read_from_s3(args.audio_path, f"/tmp/infinitetalk_audio{audio_suffix}")
-        if not local_audio_path:
-            raise RuntimeError(f"Failed to download audio from {args.audio_path}")
         
         # Create temporary config json
         config_data = {

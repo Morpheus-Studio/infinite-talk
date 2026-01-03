@@ -35,8 +35,7 @@ class S3Handler:
             print(f"Successfully downloaded {s3_path} to {local_path}")
             return local_path
         except ClientError as e:
-            print(f"Error reading from S3: {e}")
-            return ""
+            raise RuntimeError(f"Failed to download audio from {e}")
     
     def write_to_s3(self, local_file_path: str, s3_path: str) -> bool:
         """Uploads a local file to the specified S3 path"""
@@ -47,5 +46,4 @@ class S3Handler:
             print(f"Successfully uploaded {local_file_path} to {s3_path}")
             return True
         except ClientError as e:
-            print(f"Error writing to S3: {e}")
-            return False
+            raise RuntimeError(f"Failed to upload file to S3: {e}")

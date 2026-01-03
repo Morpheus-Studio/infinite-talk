@@ -7,6 +7,6 @@
         "resolution": "480",
         "steps": 40,
         "low_vram": false,
-        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output.mp4"
+        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output_talking_lady.mp4"
     }
 }

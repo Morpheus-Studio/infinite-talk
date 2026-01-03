@@ -8,6 +8,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from video_generation_jobs.from_lora_job.run import run as run_lora_job
 from video_generation_jobs.from_picture_job.run import run as run_picture_job
 from video_generation_jobs.from_video_job.run import run as run_video_job
 
@@ -19,13 +20,14 @@ def handler(job):
     Input format:
     {
         "input": {
-            "job_type": "from_picture" or "from_video",
-            "input_media": "/path/to/image.jpg" or "/path/to/video.mp4",
+            "job_type": "from_picture" | "from_video" | "from_lora",
+            "input_media": "/path/to/image.jpg" | "/path/to/video.mp4",
             "audio": "/path/to/audio.wav",
             "prompt": "A person talking",
-            "resolution": "480" or "720",
+            "resolution": "480" | "720",
             "steps": 40,
-            "s3_output_path": "s3://bucket/path/to/output.mp4"
+            "s3_output_path": "s3://bucket/path/to/output.mp4",
+            "lora_path": "/path/to/lora.safetensors"  # required only for from_lora
         }
     }
     """
@@ -33,8 +35,8 @@ def handler(job):
     job_type = job_input.get("job_type")
     
     # Validate job type
-    if job_type not in ["from_picture", "from_video"]:
-        return {"error": f"Invalid job_type: {job_type}. Must be 'from_picture' or 'from_video'"}
+    if job_type not in ["from_picture", "from_video", "from_lora"]:
+        return {"error": f"Invalid job_type: {job_type}. Must be 'from_picture', 'from_video', or 'from_lora'"}
     
     # Validate required inputs
     if not job_input.get("input_media"):
@@ -43,8 +45,11 @@ def handler(job):
     if not job_input.get("audio"):
         return {"error": "audio is required"}
     
+    # Validate LoRA-specific inputs
+    if job_type == "from_lora" and not job_input.get("lora_path"):
+        return {"error": "lora_path is required for job_type 'from_lora'"}
+
     # Extract parameters
-    output_file = f"/tmp/output_{job.get('id', 'unknown')}"
     prompt = job_input.get("prompt", "A person talking")
     resolution = job_input.get("resolution", "480")
     steps = job_input.get("steps", 40)
@@ -64,6 +69,16 @@ def handler(job):
                 video_path=job_input["input_media"],
                 audio_path=job_input["audio"],
                 s3_output_path=job_input.get("s3_output_path", ""),
+                prompt=prompt,
+                resolution=resolution,
+                steps=steps
+            )
+        if job_type == "from_lora":
+            run_lora_job(
+                image_path=job_input["input_media"],
+                audio_path=job_input["audio"],
+                s3_output_path=job_input.get("s3_output_path", ""),
+                lora_path=job_input["lora_path"],
                 prompt=prompt,
                 resolution=resolution,
                 steps=steps

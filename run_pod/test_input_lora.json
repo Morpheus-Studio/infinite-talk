@@ -1,0 +1,12 @@
+{
+    "input": {
+        "job_type": "from_lora",
+        "input_media": "s3://morpheus-general-dev/infinite-talk/inputs/sample_portrait.png",
+        "audio": "s3://morpheus-general-dev/infinite-talk/inputs/sample_voiceover.wav",
+        "prompt": "A confident presenter delivering a product overview to camera.",
+        "resolution": "480",
+        "steps": 8,
+        "lora_path": "s3://morpheus-general-dev/infinite-talk/lora/fusionx.safetensors",
+        "s3_output_path": "s3://morpheus-general-dev/infinite-talk/outputs/output_lora_sample.mp4"
+    }
+}

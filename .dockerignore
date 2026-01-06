@@ -34,3 +34,6 @@ temp_config*.json
 *.pth
 *.safetensors
 !requirements.txt
+
+
+export_env.sh

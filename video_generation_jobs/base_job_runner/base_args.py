@@ -3,6 +3,7 @@ from typing import Literal
 
 @dataclass
 class BaseJobArgs:
+    job_id: str
     resolution: Literal["480", "720"]
     s3_output_path: str
     prompt: str

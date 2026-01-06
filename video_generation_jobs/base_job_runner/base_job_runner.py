@@ -2,20 +2,42 @@ from dataclasses import dataclass, field
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 from video_generation_jobs.base_job_runner.base_args import BaseJobArgs
 from video_generation_jobs.utils.s3_handler import S3Handler
+from video_generation_jobs.utils.job_status_reporter import JobStatusReporter, JobStatusReport
 
+#TODO clean up base job runner
+#TODO use lora fusionx for all jobs regardless of job type, then remove steps arg
 @dataclass
 class BaseJobRunner:
     
     s3_handler: S3Handler = field(init=False, default_factory=S3Handler)
+    job_status_reporter: JobStatusReporter = field(init=False, default_factory=JobStatusReporter)
+    
+    def download_model_weights(self, repo_root: Path):
+        """Download model weights"""
+        download_script = repo_root / "install_scripts" / "download_weights.sh"
+        
+        try:
+            subprocess.run(
+                ["/bin/bash", str(download_script)],
+                check=True,
+                cwd=repo_root,
+                capture_output=False
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to download model weights: {e}")
         
     def run(self, args: BaseJobArgs):
         # Setup paths
         current_dir = Path(__file__).parent.absolute()
         # Project root is one level above video-generation-jobs
         repo_root = current_dir.parent.parent
+        
+        # download model weights before proceeding
+        self.download_model_weights(repo_root)
         
         # Hardcoded temporary paths
         temp_config_name = "temp_config.json"
@@ -59,9 +81,9 @@ class BaseJobRunner:
             "--teacache_thresh", "0.2",            # Set TeaCache efficiency
             "--num_persistent_param_in_dit", "80",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
             "--offload_model", "False",
-            "--motion_frame", "5",   # Increase overlap for smoother motion (default is 9)
+            "--motion_frame", "9",   # Increase overlap for smoother motion (default is 9)            
+            "--frame_num", "121",                  # Larger per-chunk processing (must be 4n+1)
             
-            # "--frame_num", "121",                  # Larger per-chunk processing (must be 4n+1)
             # "--use_apg",                # Enable higher quality sampling
             # "--apg_momentum", "-0.75",   # Standard stable setting
             # "--apg_norm_threshold", "55",# Standard stable setting
@@ -97,11 +119,35 @@ class BaseJobRunner:
 
         print(f"Running command: {' '.join(cmd)}")
         
+        # Track execution time
+        start_time = time.time()
+        
         try:
             subprocess.run(cmd, check=True, cwd=repo_root)
             # Upload output to S3 (the script adds .mp4 extension)
             actual_output_path = f"{temp_output_path}.mp4"
             self.s3_handler.write_to_s3(actual_output_path, args.s3_output_path)
+            
+            # Report success
+            execution_time = time.time() - start_time
+            report = JobStatusReport(
+                job_id=args.job_id,
+                status="COMPLETED",
+                execution_time=execution_time
+            )
+            self.job_status_reporter.report_status(report)
+            
+        except Exception as e:
+            # Report failure
+            execution_time = time.time() - start_time
+            report = JobStatusReport(
+                job_id=args.job_id,
+                status="FAILED",
+                execution_time=execution_time,
+                error_message=str(e)
+            )
+            self.job_status_reporter.report_status(report)
+            raise e
         finally:
             # Cleanup
             if config_path.exists():

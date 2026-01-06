@@ -74,5 +74,5 @@ ENV PYTHONUNBUFFERED=1
 
 # No weights are downloaded at build time; user will handle inside container
 
-# Default to running as interactive shell, but can be overridden for RunPod
-CMD ["/bin/bash"]
+# Run RunPod handler using the conda environment's Python explicitly
+CMD ["/opt/conda/envs/multitalk/bin/python", "-u", "run_pod/runpod_handler.py"]

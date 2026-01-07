@@ -1,9 +1,11 @@
 {
-    "job_id": "test_job_001",
-    "job_type": "from_video",
-    "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
-    "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
-    "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
-    "resolution": "480",
-    "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output_talking_lady.mp4"
+    "input": {
+        "job_id": "test_job_001",
+        "job_type": "from_video",
+        "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
+        "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
+        "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
+        "resolution": "480",
+        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output_talking_lady.mp4"
+    }
 } 

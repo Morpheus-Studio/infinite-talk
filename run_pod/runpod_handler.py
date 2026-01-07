@@ -30,13 +30,11 @@ class JobInput(BaseModel):
 
 
 def handler(job_args: dict):
-    # Validate input using Pydantic
     try:
-        job_input = JobInput(**job_args)
+        job_input = JobInput(**job_args.get("input"))
     except ValidationError as e:
         return {"error": "Validation failed", "details": e.errors()}
     
-    # Validate LoRA-specific requirement
     if job_input.job_type == "from_lora" and not job_input.lora_path:
         return {"error": "lora_path is required for job_type 'from_lora'"}
     

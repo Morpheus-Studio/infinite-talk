@@ -16,7 +16,8 @@ class JobStatusReport:
 @dataclass
 class JobStatusReporter:
     """Handle job status reporting to the job manager API"""
-    api_key: str = field(default_factory=lambda: os.getenv("JOB_MANAGER_API_KEY", ""))
+    api_key: str = field(default_factory=lambda: os.getenv("AWS_JOB_STATUS_API_KEY", ""))
+    api_url: str = field(default_factory=lambda: os.getenv("AWS_JOB_STATUS_URL", ""))
     
     def report_status(self, report: JobStatusReport) -> bool:
         """
@@ -44,7 +45,7 @@ class JobStatusReporter:
             }
             
             response = requests.post(
-                "https://85p5vuco2f.execute-api.us-east-1.amazonaws.com/dev/job/status",
+                self.api_url,
                 json=payload,
                 headers=headers,
                 timeout=10

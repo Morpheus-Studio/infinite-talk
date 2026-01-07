@@ -1,12 +1,13 @@
 {
-    "job_id": "job_123456",
-    "job_type": "from_lora",
-    "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
-    "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
-    "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
-    "resolution": "720",
-    "steps": 8,
-    "lora_path": "weights/FusionX/FusionX_LoRa/Wan2.1_I2V_14B_FusionX_LoRA.safetensors",
-    "s3_output_path": "s3://morpheus-general-dev/infinite-talk/outputs/output_lora_sample.mp4"
-
+    "input": {
+        "job_id": "job_123456",
+        "job_type": "from_lora",
+        "input_media": "s3://morpheus-general-dev/infinte-talk/cut_talking-lady.mp4",
+        "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
+        "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
+        "resolution": "720",
+        "steps": 8,
+        "lora_path": "weights/FusionX/FusionX_LoRa/Wan2.1_I2V_14B_FusionX_LoRA.safetensors",
+        "s3_output_path": "s3://morpheus-general-dev/infinite-talk/outputs/output_lora_sample.mp4"
+    }
 }

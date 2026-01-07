@@ -79,10 +79,10 @@ class BaseJobRunner:
             
             "--use_teacache",                      # Enable inference acceleration
             "--teacache_thresh", "0.2",            # Set TeaCache efficiency
-            "--num_persistent_param_in_dit", "80",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
+            "--num_persistent_param_in_dit", "40",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
             "--offload_model", "False",
             "--motion_frame", "9",   # Increase overlap for smoother motion (default is 9)            
-            "--frame_num", "121",                  # Larger per-chunk processing (must be 4n+1)
+            "--frame_num", "81",                  # Larger per-chunk processing (must be 4n+1)
             
             # "--use_apg",                # Enable higher quality sampling
             # "--apg_momentum", "-0.75",   # Standard stable setting

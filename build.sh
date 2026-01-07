@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION=0.11
+VERSION=0.12
 IMAGE_NAME=infinite-talk
 DOCKER_HUB_USER=jonathan28alkalay
 

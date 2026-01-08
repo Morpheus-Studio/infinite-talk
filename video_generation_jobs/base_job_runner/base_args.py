@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Optional
 
 @dataclass
 class BaseJobArgs:
@@ -9,5 +9,5 @@ class BaseJobArgs:
     prompt: str
     video_path: str
     audio_path: str
-    steps: int = 40
     low_vram: bool = False
+    lora_path: Optional[str] = None

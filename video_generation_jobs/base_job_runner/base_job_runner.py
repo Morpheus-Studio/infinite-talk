@@ -8,8 +8,6 @@ from video_generation_jobs.base_job_runner.base_args import BaseJobArgs
 from video_generation_jobs.utils.s3_handler import S3Handler
 from video_generation_jobs.utils.job_status_reporter import JobStatusReporter, JobStatusReport
 
-#TODO clean up base job runner
-#TODO use lora fusionx for all jobs regardless of job type, then remove steps arg
 @dataclass
 class BaseJobRunner:
     
@@ -30,6 +28,23 @@ class BaseJobRunner:
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to download model weights: {e}")
         
+    def apply_lora(self, args: BaseJobArgs, repo_root: Path):
+        
+        def resolve_lora_path(lora_path: str) -> str:
+            if not lora_path:
+                return str(repo_root / "weights" / "Wan2.1_I2V_14B_FusionX_LoRA.safetensors")
+            
+            return self.s3_handler.read_from_s3(lora_path, "/tmp/infinitetalk_lora.safetensors")
+                    
+        local_lora_path = resolve_lora_path(args.lora_path)
+        
+        return [
+            "--lora_dir", local_lora_path,
+            "--lora_scale", "1.0",  # Optimal for LoRA
+            "--sample_text_guide_scale", "1.0",  # Optimal for LoRA
+            "--sample_audio_guide_scale", "2.0",  # Optimal for LoRA
+        ]
+
     def run(self, args: BaseJobArgs):
         # Setup paths
         current_dir = Path(__file__).parent.absolute()
@@ -47,9 +62,7 @@ class BaseJobRunner:
         video_suffix = Path(args.video_path).suffix or ".mp4"
         audio_suffix = Path(args.audio_path).suffix or ".wav"
 
-        local_video_path = self.s3_handler.read_from_s3(args.video_path, f"/tmp/infinitetalk_video{video_suffix}")
-        
-        # Download audio from S3
+        local_video_path = self.s3_handler.read_from_s3(args.video_path, f"/tmp/infinitetalk_video{video_suffix}")        
         local_audio_path = self.s3_handler.read_from_s3(args.audio_path, f"/tmp/infinitetalk_audio{audio_suffix}")
         
         # Create temporary config json
@@ -74,7 +87,7 @@ class BaseJobRunner:
             "--infinitetalk_dir", str(repo_root / "weights" / "InfiniteTalk" / "single" / "infinitetalk.safetensors"),
             "--input_json", str(config_path),
             "--size", f"infinitetalk-{args.resolution}",
-            "--sample_steps", str(args.steps),
+            "--sample_steps", "40" if args.lora_path else "8", # 40 for custom LoRA, 8 for default FusionX
             "--mode", "streaming",
             
             "--use_teacache",                      # Enable inference acceleration
@@ -94,21 +107,15 @@ class BaseJobRunner:
             "--save_file", temp_output_path
         ]
 
-        # Check if this is a LoRA job
-        if hasattr(args, 'lora_dir') and args.lora_dir:
-            # LoRA-specific configuration
-            local_lora_path = args.lora_dir
-            if args.lora_dir.startswith("s3://"):
-                local_lora_path = self.s3_handler.read_from_s3(args.lora_dir, f"/tmp/infinitetalk_lora.safetensors")
-            
-            cmd.extend([
-                "--lora_dir", local_lora_path,
-                "--lora_scale", "1.0",  # Optimal for LoRA
-                "--sample_text_guide_scale", "1.0",  # Optimal for LoRA
-                "--sample_audio_guide_scale", "2.0",  # Optimal for LoRA
-            ])
+        # Apply LoRA settings
+        cmd.extend(self.apply_lora(args, repo_root))
 
         if args.low_vram:
+            # Remove default persistent param setting so we can overwrite it
+            idx = cmd.index("--num_persistent_param_in_dit")
+            cmd.pop(idx) # Remove flag
+            cmd.pop(idx) # Remove value
+
             # Reduce GPU memory: disable persistent params and use fp8 quant weights
             # must be on single GPU for for quantization to work
             cmd.extend([

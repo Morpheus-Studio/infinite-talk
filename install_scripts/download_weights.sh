@@ -36,22 +36,28 @@ mkdir -p "$WEIGHTS_DIR"
 # Download Wan2.1-I2V-14B-480P base model
 echo "Downloading Wan2.1-I2V-14B-480P base model..."
 hf download Wan-AI/Wan2.1-I2V-14B-480P --local-dir "$WEIGHTS_DIR/Wan2.1-I2V-14B-480P"
+# Clean cache after heavy download
+rm -rf ~/.cache/huggingface/*
 
 # Download chinese-wav2vec2-base audio encoder
 echo "Downloading chinese-wav2vec2-base audio encoder..."
 hf download TencentGameMate/chinese-wav2vec2-base --local-dir "$WEIGHTS_DIR/chinese-wav2vec2-base"
+rm -rf ~/.cache/huggingface/*
 
 # Download specific model.safetensors for wav2vec2
 echo "Downloading specific wav2vec2 model file..."
 hf download TencentGameMate/chinese-wav2vec2-base model.safetensors --revision refs/pr/1 --local-dir "$WEIGHTS_DIR/chinese-wav2vec2-base"
+rm -rf ~/.cache/huggingface/*
 
 # Download InfiniteTalk weights
 echo "Downloading InfiniteTalk weights..."
 hf download MeiGen-AI/InfiniteTalk --local-dir "$WEIGHTS_DIR/InfiniteTalk"
+rm -rf ~/.cache/huggingface/*
 
 # Download FusionX LoRA for faster inference (optional but recommended)
 echo "Downloading FusionX LoRA accelerator..."
 hf download vrgamedevgirl84/Wan14BT2VFusioniX FusionX_LoRa/Wan2.1_I2V_14B_FusionX_LoRA.safetensors --local-dir "$WEIGHTS_DIR/FusionX"
+rm -rf ~/.cache/huggingface/*
 
 echo ""
 echo "=========================================="

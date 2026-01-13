@@ -32,7 +32,7 @@ class BaseJobRunner:
         
         def resolve_lora_path(lora_path: str) -> str:
             if not lora_path:
-                return str(repo_root / "weights" / "Wan2.1_I2V_14B_FusionX_LoRA.safetensors")
+                return str(repo_root / "weights" / "FusionX" / "FusionX_LoRa" / "Wan2.1_I2V_14B_FusionX_LoRA.safetensors")
             
             return self.s3_handler.read_from_s3(lora_path, "/tmp/infinitetalk_lora.safetensors")
                     

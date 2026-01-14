@@ -9,5 +9,6 @@ class BaseJobArgs:
     prompt: str
     video_path: str
     audio_path: str
-    low_vram: bool = False
+    quantized: bool
+    scene_seg: bool
     lora_path: Optional[str] = None

@@ -40,9 +40,9 @@ class BaseJobRunner:
         
         return [
             "--lora_dir", local_lora_path,
-            "--lora_scale", "1.0",  # Optimal for LoRA
-            "--sample_text_guide_scale", "1.0",  # Optimal for LoRA
-            "--sample_audio_guide_scale", "2.0",  # Optimal for LoRA
+            "--lora_scale", "1.0",
+            "--sample_text_guide_scale", "1.0",
+            "--sample_audio_guide_scale", "2.0"
         ]
 
     def run(self, args: BaseJobArgs):
@@ -78,7 +78,6 @@ class BaseJobRunner:
         with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
 
-        # Construct command
         cmd = [
             sys.executable,
             str(repo_root / "generate_infinitetalk.py"),
@@ -92,7 +91,7 @@ class BaseJobRunner:
             
             "--use_teacache",                      # Enable inference acceleration
             "--teacache_thresh", "0.2",            # Set TeaCache efficiency
-            "--num_persistent_param_in_dit", "40",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
+            "--num_persistent_param_in_dit", "50",  # Keep more weights in VRAM for speed (default is usually low for consumer cards)
             "--offload_model", "False",
             "--motion_frame", "9",   # Increase overlap for smoother motion (default is 9)            
             "--frame_num", "81",                  # Larger per-chunk processing (must be 4n+1)
@@ -110,19 +109,14 @@ class BaseJobRunner:
         # Apply LoRA settings
         cmd.extend(self.apply_lora(args, repo_root))
 
-        if args.low_vram:
-            # Remove default persistent param setting so we can overwrite it
-            idx = cmd.index("--num_persistent_param_in_dit")
-            cmd.pop(idx) # Remove flag
-            cmd.pop(idx) # Remove value
-
-            # Reduce GPU memory: disable persistent params and use fp8 quant weights
-            # must be on single GPU for for quantization to work
+        if args.quantized:
             cmd.extend([
-                "--num_persistent_param_in_dit", "0",
                 "--quant", "fp8",
                 "--quant_dir", str(repo_root / "weights" / "InfiniteTalk" / "quant_models" / "infinitetalk_single_fp8.safetensors"),
             ])
+        
+        if args.scene_seg:
+            cmd.append("--scene_seg")
 
         print(f"Running command: {' '.join(cmd)}")
         
@@ -137,21 +131,33 @@ class BaseJobRunner:
             
             # Report success
             execution_time = time.time() - start_time
+            model_type = "Custom LoRA" if args.lora_path else "FusionX"
+            
             report = JobStatusReport(
                 job_id=args.job_id,
                 status="COMPLETED",
-                execution_time=execution_time
+                execution_time=execution_time,
+                resolution=args.resolution,
+                quantized=args.quantized,
+                scene_seg=args.scene_seg,
+                model_type=model_type
             )
             self.job_status_reporter.report_status(report)
             
         except Exception as e:
             # Report failure
             execution_time = time.time() - start_time
+            model_type = "Custom LoRA" if args.lora_path else "FusionX"
+
             report = JobStatusReport(
                 job_id=args.job_id,
                 status="FAILED",
                 execution_time=execution_time,
-                error_message=str(e)
+                error_message=str(e),
+                resolution=args.resolution,
+                quantized=args.quantized,
+                scene_seg=args.scene_seg,
+                model_type=model_type
             )
             self.job_status_reporter.report_status(report)
             raise e

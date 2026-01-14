@@ -6,6 +6,8 @@
         "audio": "s3://morpheus-general-dev/infinte-talk/jewish-people.mp3",
         "prompt": "A women standing in front of a green screen talking about an educational topic about judaism.",
         "resolution": "480",
-        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output_talking_lady.mp4"
+        "s3_output_path": "s3://morpheus-general-dev/infinte-talk/outputs/output_talking_lady.mp4",
+        "quantized": false,
+        "scene_seg": false
     }
 } 

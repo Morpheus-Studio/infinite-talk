@@ -10,6 +10,10 @@ class JobStatusReport:
     job_id: str
     status: Literal["COMPLETED", "FAILED"]
     execution_time: float
+    resolution: str
+    quantized: bool
+    scene_seg: bool
+    model_type: str
     error_message: Optional[str] = None
 
 

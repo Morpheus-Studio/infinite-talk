@@ -4,7 +4,7 @@ from video_generation_jobs.from_picture_job.job_args import PictureJobArgs
 
 
 
-def run(job_id: str, image_path: str, audio_path: str, s3_output_path: str, prompt: str, resolution: str, lora_path: Optional[str] = None):
+def run(job_id: str, image_path: str, audio_path: str, s3_output_path: str, prompt: str, resolution: str, quantized: bool, scene_seg: bool, lora_path: Optional[str] = None):
     """
     Run picture-to-video generation
     
@@ -15,6 +15,8 @@ def run(job_id: str, image_path: str, audio_path: str, s3_output_path: str, prom
         s3_output_path: S3 path where the output video will be uploaded
         prompt: Text prompt describing the video
         resolution: Video resolution ("480" or "720")
+        quantized: Whether to use quantized weights
+        scene_seg: Whether to parse video cuts/shot changes for better results.
         lora_path: Optional path to LoRA weights
     """
     runner = BaseJobRunner()
@@ -26,6 +28,8 @@ def run(job_id: str, image_path: str, audio_path: str, s3_output_path: str, prom
         prompt=prompt,
         video_path=image_path,
         audio_path=audio_path,
+        quantized=quantized,
+        scene_seg=scene_seg,
         lora_path=lora_path
     )
     

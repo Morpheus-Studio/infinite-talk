@@ -24,6 +24,8 @@ class JobInput(BaseModel):
     prompt: str = Field(default="A person talking", description="Text prompt describing the video")
     resolution: Literal["480", "720"] = Field(default="480", description="Video resolution")
     s3_output_path: str = Field(default="", description="S3 path for output video")
+    quantized: bool = Field(..., description="Whether to use quantized weights")
+    scene_seg: bool = Field(..., description="Whether to parse video cuts/shot changes for better results.")
     lora_path: Optional[str] = Field(default=None, description="Path to LoRA weights (optional)")
 
 
@@ -43,6 +45,8 @@ def handler(job_args: dict):
                 s3_output_path=job_input.s3_output_path,
                 prompt=job_input.prompt,
                 resolution=job_input.resolution,
+                quantized=job_input.quantized,
+                scene_seg=job_input.scene_seg,
                 lora_path=job_input.lora_path
             )
         if job_input.job_type == "from_video":
@@ -53,6 +57,8 @@ def handler(job_args: dict):
                 s3_output_path=job_input.s3_output_path,
                 prompt=job_input.prompt,
                 resolution=job_input.resolution,
+                quantized=job_input.quantized,
+                scene_seg=job_input.scene_seg,
                 lora_path=job_input.lora_path
             )
         

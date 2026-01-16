@@ -22,12 +22,28 @@ try:
 except ModuleNotFoundError:
     FLASH_ATTN_2_AVAILABLE = False
 
+try:
+    import sageattention
+    SAGE_ATTENTION_AVAILABLE = True
+except ModuleNotFoundError:
+    SAGE_ATTENTION_AVAILABLE = False
+
 import warnings
 
 __all__ = [
     'flash_attention',
     'attention',
 ]
+
+# Log which attention backend is available
+if SAGE_ATTENTION_AVAILABLE:
+    print("[Wan] Using attention backend: SageAttention")
+elif FLASH_ATTN_3_AVAILABLE:
+    print("[Wan] Using attention backend: Flash Attention 3")
+elif FLASH_ATTN_2_AVAILABLE:
+    print("[Wan] Using attention backend: Flash Attention 2")
+else:
+    print("[Wan] Using attention backend: Standard PyTorch Attention")
 
 
 def flash_attention(
@@ -100,7 +116,21 @@ def flash_attention(
         )
 
     # apply attention
-    if (version is None or version == 3) and FLASH_ATTN_3_AVAILABLE:
+    if SAGE_ATTENTION_AVAILABLE:
+        x = sageattention.sageattn_varlen(
+            q=q.contiguous(),
+            k=k.contiguous(),
+            v=v.contiguous(),
+            cu_seqlens_q=torch.cat([q_lens.new_zeros([1]), q_lens]).cumsum(
+                0, dtype=torch.int32).to(q.device, non_blocking=True),
+            cu_seqlens_k=torch.cat([k_lens.new_zeros([1]), k_lens]).cumsum(
+                0, dtype=torch.int32).to(q.device, non_blocking=True),
+            max_seqlen_q=lq,
+            max_seqlen_k=lk,
+            sm_scale=softmax_scale,
+            is_causal=causal,
+            smooth_k=True).unflatten(0, (b, lq))
+    elif (version is None or version == 3) and FLASH_ATTN_3_AVAILABLE:
         # Note: dropout_p, window_size are not supported in FA3 now.
         x = flash_attn_interface.flash_attn_varlen_func(
             q=q,
